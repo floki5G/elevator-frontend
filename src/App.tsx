@@ -68,10 +68,12 @@ const App = () => {
   const [showAlert, setShowAlert] = useState(false);
   const [activeTab, setActiveTab] = useState('simulation');
 
-  const { sendJsonMessage, lastJsonMessage } = useWebSocket('https://elevator-backend.onrender.com', {
-    shouldReconnect: () => true,
-    onOpen: () => sendJsonMessage({ type: 'config', ...config })
-  });
+  const { sendJsonMessage, lastJsonMessage } = useWebSocket(
+    'ws://localhost:3001',
+    {
+      shouldReconnect: () => true,
+      onOpen: () => sendJsonMessage({ type: 'config', ...config })
+    });
 
   useEffect(() => {
     sendJsonMessage({ type: 'config', ...config });
@@ -114,7 +116,8 @@ const App = () => {
     sendJsonMessage({
       type: 'internal',
       floor,
-      passengersOut: numPassengersOut
+      passengersOut: numPassengersOut,
+      elevatorId: selectedElevator
     });
   };
 
@@ -151,8 +154,23 @@ const App = () => {
 
   const metrics = getMetricsData();
 
+  // check socket connection
+  const socketStatus =
+    (lastJsonMessage as any);
+  if (!socketStatus) return <div className="flex items-center justify-center h-screen bg-gray-50">
+    <div className="text-lg font-semibold text-gray-700">
+      Connected to the server <button
+        onClick={() => sendJsonMessage({ type: 'config', ...config })} className="text-blue-500 hover:underline">
+        Refresh
+      </button>
+
+    </div>
+  </div>;
+
   return (
     <div className="min-h-screen bg-gray-50">
+
+
       {showAlert && (
         <div className="fixed z-50 flex items-center p-4 text-white bg-red-500 rounded-lg shadow-lg top-4 right-4 animate-fade-in">
           <Bell size={18} className="mr-2" />
@@ -269,13 +287,13 @@ const App = () => {
               >
                 🌅 Morning Peak
               </button>
-              <button
+              {/* <button
                 onClick={() => handleSetPeak('evening')}
                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${peakScenario === 'evening' ? 'bg-orange-600' : 'bg-orange-400 hover:bg-orange-500'
                   } text-white`}
               >
                 🌆 Evening Peak
-              </button>
+              </button> */}
               <button
                 onClick={() => handleSetPeak('none')}
                 className="px-4 py-2 font-medium text-white transition-colors bg-gray-500 rounded-lg hover:bg-gray-600"
@@ -312,7 +330,7 @@ const App = () => {
         {activeTab === 'simulation' && (
           <div className="flex flex-col gap-6 lg:flex-row">
             {/* Floor Panel */}
-            <div className="w-full p-4 bg-white shadow-md lg:w-32 rounded-xl">
+            <div className="w-full p-4 bg-white shadow-md lg:w-36 rounded-xl">
               <h3 className="mb-3 font-semibold text-gray-700 text-md">Floor Controls</h3>
               <div className="lg:h-[600px] overflow-y-auto grid grid-cols-5 lg:grid-cols-1 gap-2">
                 {Array.from({ length: config.floors }).map((_, i) => {
@@ -331,11 +349,11 @@ const App = () => {
                           disabled={isAutoMode}
                         >
                           <ArrowUp size={16} className="text-blue-600" />
-                          {upQueue > 0 && (
+                          {/* {upQueue > 0 && (
                             <span className="absolute flex items-center justify-center w-5 h-5 text-xs text-white bg-green-500 rounded-full -top-1 -right-1">
                               {upQueue}
                             </span>
-                          )}
+                          )} */}
                         </button>
                         <button
                           onClick={() => handleFloorClick(floorNumber, 'down')}
@@ -344,11 +362,11 @@ const App = () => {
                           disabled={isAutoMode}
                         >
                           <ArrowDown size={16} className="text-blue-600" />
-                          {downQueue > 0 && (
+                          {/* {downQueue > 0 && (
                             <span className="absolute flex items-center justify-center w-5 h-5 text-xs text-white bg-red-500 rounded-full -top-1 -right-1">
                               {downQueue}
                             </span>
-                          )}
+                          )} */}
                         </button>
                       </div>
                     </div>
@@ -358,8 +376,8 @@ const App = () => {
             </div>
 
             {/* Elevators */}
-            <div className="flex-1 relative bg-white rounded-xl shadow-md p-4 h-[600px] overflow-hidden">
-              <h3 className="mb-3 font-semibold text-gray-700 text-md">Elevator Shafts</h3>
+            <div className="flex-1 relative bg-white rounded-xl shadow-md p-4 min-h-[600px] overflow-hidden">
+              {/* <h3 className="mb-3 font-semibold text-gray-700 text-md">Elevator Shafts</h3> */}
 
               {/* Floor indicators */}
               <div className="absolute top-0 bottom-0 left-0 w-8 border-r border-gray-200 bg-gray-50">
